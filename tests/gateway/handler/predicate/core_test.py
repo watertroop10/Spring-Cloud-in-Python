@@ -12,7 +12,7 @@ from spring_cloud.gateway.handler.predicate.core import AfterRoutePredicate, Coo
 class TestAfterRoutePredicate:
     def given_config_datetime(self, date_time: datetime):
         self.config = AfterRoutePredicate.Config()
-        self.config.set_date_time(date_time)
+        self.config.date_time = date_time
         self.predicate = AfterRoutePredicate(self.config)
 
     def given_now(self, now: datetime):
@@ -34,7 +34,7 @@ class TestAfterRoutePredicate:
 class TestPathRoutePredicate:
     def given_config_pattern(self, pattern: str):
         self.config = PathRoutePredicate.Config()
-        self.config.set_pattern(pattern)
+        self.config.pattern = pattern
         self.predicate = PathRoutePredicate(self.config)
 
     def given_request_url(self, request_url: str):
@@ -56,8 +56,8 @@ class TestPathRoutePredicate:
 class TestCookieRoutePredicate:
     def given_config_cookie(self, cookie_name, cookie_value):
         self.config = CookieRoutePredicate.Config()
-        self.config.set_cookie_name(cookie_name)
-        self.config.set_cookie_value(cookie_value)
+        self.config.cookie_name = cookie_name
+        self.config.cookie_value = cookie_value
         self.predicate = CookieRoutePredicate(self.config)
 
     def give_http_cookies(self, http_cookies=None):
@@ -65,13 +65,13 @@ class TestCookieRoutePredicate:
 
     def test_Given_cookies_from_config_A_When_match_cookie_Then_return_T(self):
         self.given_config_cookie("my_cookie", "ch.p")
-        self.give_http_cookies({"your_cookie": "sugar", "my_cookie": "ch.p"})
+        self.give_http_cookies({"your_cookie": ["sugar"], "my_cookie": ["ch.p", "cookie"]})
         value = self.predicate.test(self.http_cookies)
         assert value
 
     def test_Given_cookies_from_config_A_When_not_match_cookie_Then_return_F(self):
         self.given_config_cookie("my_cookie", "ch.p")
-        self.give_http_cookies({"your_cookie": "sugar", "his_cookie": "chocolate"})
+        self.give_http_cookies({"your_cookie": ["sugar"], "his_cookie": ["chocolate", "truffle"]})
         value = self.predicate.test(self.http_cookies)
         assert not value
 

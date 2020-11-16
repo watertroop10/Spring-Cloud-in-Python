@@ -31,70 +31,48 @@ class AfterRoutePredicate(Predicate):
         self.now_datetime_func = now_datetime_func
         self.config = config
 
-    def test(self, obj) -> bool:
+    def test(self, http_request) -> bool:
         now = self.now_datetime_func() if self.now_datetime_func else datetime.now()
         return now > self.config.date_time
 
     class Config:
         def __init__(self):
-            self.__date_time = None
-
-        @property
-        def date_time(self) -> datetime:
-            return self.__date_time
-
-        def set_date_time(self, date_time):
-            self.__date_time = date_time
+            self.date_time = None
 
 
 class PathRoutePredicate(Predicate):
     def __init__(self, config):
         self.config = config
 
-    def test(self, obj) -> bool:
-        path_patterns = obj
+    def test(self, http_request) -> bool:
+        path_patterns = http_request
         return self.config.pattern in path_patterns
 
     class Config:
         def __init__(self):
-            self.__pattern = None
-
-        @property
-        def pattern(self) -> str:
-            return self.__pattern
-
-        def set_pattern(self, pattern):
-            self.__pattern = pattern
+            self.pattern = None
 
 
 class CookieRoutePredicate(Predicate):
     def __init__(self, config):
         self.config = config
 
-    def test(self, obj) -> bool:
-        request_http_cookies = obj
-        if request_http_cookies is None:
+    # TODO: the cookies is dependency with http_request, but we haven't decided the tool,
+    #  that is, the type of the cookies may be change in future
+    def test(self, http_request) -> bool:
+        http_request_cookies = http_request
+        if http_request_cookies is None:
             return False
-        for cookie in request_http_cookies.values():
-            if re.match(cookie, self.config.cookie_value):
-                return True
+
+        for cookie_name in http_request_cookies:
+            if re.match(self.config.cookie_name, cookie_name):
+                values = http_request_cookies[cookie_name]
+                for value in values:
+                    if re.match(self.config.cookie_value, value):
+                        return True
         return False
 
     class Config:
         def __init__(self):
-            self.__cookie_name = None
-            self.__cookie_value = None
-
-        @property
-        def cookie_name(self) -> str:
-            return self.__cookie_name
-
-        @property
-        def cookie_value(self) -> str:
-            return self.__cookie_value
-
-        def set_cookie_name(self, cookie_name: str):
-            self.__cookie_name = cookie_name
-
-        def set_cookie_value(self, cookie_value: str):
-            self.__cookie_value = cookie_value
+            self.cookie_name = None
+            self.cookie_value = None
